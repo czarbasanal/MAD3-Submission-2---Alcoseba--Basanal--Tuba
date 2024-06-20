@@ -15,5 +15,13 @@ Outlined in this section are the contributions made by each member for the MAD3-
     - modified PostController by adding getPostById (GET/post/id) method 
     - added PostDetailScreen to display the details of a particular post from a user
 
+- ALCOSEBA, NATHAN MATHEW
+    - create ALCOSEBA-PUT branch
+    - modified PostSummaryCard to enable post editing
+    - modified RestDemoScreen to display edit icon
+    - modified PostContoller by adding updatePost 
+    - created EditsPostDialog and _EditPostDialogState class
+    - modified overall user interface by utilizing cupertino icons and a modern minimalist design 
+
 
 
