@@ -1,11 +1,12 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:state_change_demo/src/models/post.model.dart';
 import 'package:state_change_demo/src/models/user.model.dart';
 import 'package:state_change_demo/src/screens/post_details.dart';
+import 'package:flutter/cupertino.dart'; // Import Cupertino
 
 class RestDemoScreen extends StatefulWidget {
   const RestDemoScreen({super.key});
@@ -28,26 +29,41 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Users"),
-        leading: IconButton(
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Color(0Xff191919),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0Xff191919),
+        ),
+        textTheme: GoogleFonts.poppinsTextTheme().apply(
+          bodyColor: Colors.white, // Set body text color to white
+          displayColor: Colors.white, // Set headline text color to white
+        ),
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text("Users"),
+          centerTitle: true,
+          leading: IconButton(
             onPressed: () {
               userController.getUsers().then((_) {
                 postController.getPosts();
               });
             },
-            icon: const Icon(Icons.refresh)),
-        actions: [
-          IconButton(
+            icon: const Icon(CupertinoIcons.refresh), // Use Cupertino icon
+          ),
+          actions: [
+            IconButton(
               onPressed: () {
                 showNewPostFunction(context);
               },
-              icon: const Icon(Icons.add))
-        ],
-      ),
-      body: SafeArea(
-        child: ListenableBuilder(
+              icon: const Icon(CupertinoIcons.add), // Use Cupertino icon
+            )
+          ],
+        ),
+        body: SafeArea(
+          child: ListenableBuilder(
             listenable: postController,
             builder: (context, _) {
               if (postController.error != null) {
@@ -57,59 +73,63 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
               }
 
               return ListenableBuilder(
-                  listenable: userController,
-                  builder: (context, _) {
-                    if (userController.error != null) {
-                      return Center(
-                        child: Text(userController.error.toString()),
-                      );
-                    }
-
-                    if (!userController.working && !postController.working) {
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: userController.userList.length,
-                        itemBuilder: (context, index) {
-                          User user = userController.userList[index];
-                          List<Post> userPosts = postController.postList
-                              .where((post) => post.userId == user.id)
-                              .toList();
-                          return ExpansionTile(
-                            title: Text(user.name),
-                            children: [
-                              for (Post post in userPosts)
-                                PostSummaryCard(
-                                  post: post,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            PostDetailScreen(postId: post.id),
-                                      ),
-                                    );
-                                  },
-                                  onEdit: () {
-                                    EditPostDialog.show(context,
-                                        controller: postController, post: post);
-                                  },
-                                  onDelete: () {
-                                    postController.deletePost(post.id);
-                                  },
-                                ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                    return const Center(
-                      child: SpinKitChasingDots(
-                        size: 54,
-                        color: Colors.black87,
-                      ),
+                listenable: userController,
+                builder: (context, _) {
+                  if (userController.error != null) {
+                    return Center(
+                      child: Text(userController.error.toString()),
                     );
-                  });
-            }),
+                  }
+
+                  if (!userController.working && !postController.working) {
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: userController.userList.length,
+                      itemBuilder: (context, index) {
+                        User user = userController.userList[index];
+                        List<Post> userPosts = postController.postList
+                            .where((post) => post.userId == user.id)
+                            .toList();
+                        return ExpansionTile(
+                          title: Text(user.name),
+                          children: [
+                            for (Post post in userPosts)
+                              PostSummaryCard(
+                                post: post,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PostDetailScreen(postId: post.id),
+                                    ),
+                                  );
+                                },
+                                onEdit: () {
+                                  EditPostDialog.show(context,
+                                      controller: postController, post: post);
+                                },
+                                onDelete: () {
+                                  postController.deletePost(post.id);
+                                },
+                              ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                  return const Center(
+                    child: SpinKitChasingDots(
+                      size: 54,
+                      color:
+                          Colors.white, // Change color to white for dark mode
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -150,8 +170,12 @@ class _AddPostDialogState extends State<AddPostDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Colors.grey[850], // Dark background for dialog
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      title: const Text("Add new post"),
+      title: const Text(
+        "Add new post",
+        style: TextStyle(color: Colors.white),
+      ),
       actions: [
         ElevatedButton(
           onPressed: selectedUser == null
@@ -170,28 +194,53 @@ class _AddPostDialogState extends State<AddPostDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Title"),
+          const Text(
+            "Title",
+            style: TextStyle(color: Colors.white),
+          ),
           Flexible(
             child: TextFormField(
               controller: titleC,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+              ),
             ),
           ),
-          const Text("Content"),
+          const Text(
+            "Content",
+            style: TextStyle(color: Colors.white),
+          ),
           Flexible(
             child: TextFormField(
               controller: bodyC,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+              ),
             ),
           ),
-          const Text("User"),
+          const Text(
+            "User",
+            style: TextStyle(color: Colors.white),
+          ),
           DropdownButton<User>(
             isExpanded: true,
             value: selectedUser,
             items: widget.userController.userList.map((User user) {
               return DropdownMenuItem<User>(
                 value: user,
-                child: Text(user.name),
+                child: Text(
+                  user.name,
+                  style: const TextStyle(color: Colors.white),
+                ),
               );
             }).toList(),
+            dropdownColor: Colors.grey[800],
             onChanged: (User? newValue) {
               setState(() {
                 selectedUser = newValue!;
@@ -232,8 +281,12 @@ class _EditPostDialogState extends State<EditPostDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Colors.grey[850], // Dark background for dialog
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      title: const Text("Edit post"),
+      title: const Text(
+        "Edit post",
+        style: TextStyle(color: Colors.white),
+      ),
       actions: [
         ElevatedButton(
           onPressed: () async {
@@ -251,16 +304,34 @@ class _EditPostDialogState extends State<EditPostDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Title"),
+          const Text(
+            "Title",
+            style: TextStyle(color: Colors.white),
+          ),
           Flexible(
             child: TextFormField(
               controller: titleC,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+              ),
             ),
           ),
-          const Text("Content"),
+          const Text(
+            "Content",
+            style: TextStyle(color: Colors.white),
+          ),
           Flexible(
             child: TextFormField(
               controller: bodyC,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
+                ),
+              ),
             ),
           ),
         ],
@@ -499,6 +570,7 @@ class PostSummaryCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
+        color: Color(0xff292929), // Dark card background
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -511,21 +583,50 @@ class PostSummaryCard extends StatelessWidget {
                     child: Text(
                       post.title,
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // White text for dark mode
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: onDelete,
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEdit();
+                      } else if (value == 'delete') {
+                        onDelete();
+                      }
+                    },
+                    icon: Icon(
+                      Icons.more_horiz,
+                      color: Colors.white,
+                    ),
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text('Edit'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                    color: Colors.grey[850],
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(post.body),
+              Text(
+                post.body,
+                style: const TextStyle(
+                    color: Color(0xffAAAAAA)), // Slightly lighter text color
+              ),
             ],
           ),
         ),
