@@ -24,6 +24,14 @@ Outlined in this section are the contributions made by each member for the MAD3-
     - created _EditPostDialogState class
     - modified HttpService by adding PUT 
     - modified overall user interface by utilizing cupertino icons and a modern minimalist design 
+- Tuba, Mexl Delver O.
+    - created TUBA-POST/posts branch
+    - utilized UserController to fetch user list from the JSON placeholder API and included user selection in post creation
+    - enhanced AddPostDialog to allow selection of a user when creating a new post, including title and content input fields
+    - modified PostController by adding makePost method to handle the addition of new posts and associated user data
+    - updated RestDemoScreen to incorporate the new post creation functionality with user association
+    - improved PostSummaryCard widget to handle post deletion and integrated it into RestDemoScreen
+    - implemented the deletePost method in PostController to handle UI-level post deletion
 
 
 
