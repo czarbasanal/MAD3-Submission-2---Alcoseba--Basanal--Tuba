@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:state_change_demo/src/models/post.model.dart';
 import 'package:state_change_demo/src/models/user.model.dart';
+import 'package:state_change_demo/src/screens/post_details.dart';
 
 class RestDemoScreen extends StatefulWidget {
   const RestDemoScreen({super.key});
@@ -14,22 +15,27 @@ class RestDemoScreen extends StatefulWidget {
 }
 
 class _RestDemoScreenState extends State<RestDemoScreen> {
-  PostController controller = PostController();
+  PostController postController = PostController();
+  UserController userController = UserController();
 
   @override
   void initState() {
     super.initState();
-    controller.getPosts();
+    userController.getUsers().then((_) {
+      postController.getPosts();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Posts"),
+        title: const Text("Users"),
         leading: IconButton(
             onPressed: () {
-              controller.getPosts();
+              userController.getUsers().then((_) {
+                postController.getPosts();
+              });
             },
             icon: const Icon(Icons.refresh)),
         actions: [
@@ -42,47 +48,67 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
       ),
       body: SafeArea(
         child: ListenableBuilder(
-            listenable: controller,
+            listenable: postController,
             builder: (context, _) {
-              if (controller.error != null) {
+              if (postController.error != null) {
                 return Center(
-                  child: Text(controller.error.toString()),
+                  child: Text(postController.error.toString()),
                 );
               }
 
-              if (!controller.working) {
-                return Center(
-                  child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (Post post in controller.postList)
-                            Container(
-                                padding: const EdgeInsets.all(8),
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.blueAccent),
-                                    borderRadius: BorderRadius.circular(16)),
-                                child: Text(post.toString()))
-                        ],
-                      )),
-                );
-              }
-              return const Center(
-                child: SpinKitChasingDots(
-                  size: 54,
-                  color: Colors.black87,
-                ),
-              );
+              return ListenableBuilder(
+                  listenable: userController,
+                  builder: (context, _) {
+                    if (userController.error != null) {
+                      return Center(
+                        child: Text(userController.error.toString()),
+                      );
+                    }
+
+                    if (!userController.working && !postController.working) {
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: userController.userList.length,
+                        itemBuilder: (context, index) {
+                          User user = userController.userList[index];
+                          List<Post> userPosts = postController.postList
+                              .where((post) => post.userId == user.id)
+                              .toList();
+                          return ExpansionTile(
+                            title: Text(user.name),
+                            children: [
+                              for (Post post in userPosts)
+                                ListTile(
+                                  title: Text(post.title),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            PostDetailScreen(postId: post.id),
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                    return const Center(
+                      child: SpinKitChasingDots(
+                        size: 54,
+                        color: Colors.black87,
+                      ),
+                    );
+                  });
             }),
       ),
     );
   }
 
   showNewPostFunction(BuildContext context) {
-    AddPostDialog.show(context, controller: controller);
+    AddPostDialog.show(context, controller: postController);
   }
 }
 
@@ -164,7 +190,7 @@ class PostController with ChangeNotifier {
       required int userId}) async {
     try {
       working = true;
-      if(error != null ) error = null;
+      if (error != null) error = null;
       print(title);
       print(body);
       print(userId);
@@ -216,6 +242,30 @@ class PostController with ChangeNotifier {
       error = e;
       working = false;
       notifyListeners();
+    }
+  }
+
+  Future<Post> getPostById(int postId) async {
+    try {
+      working = true;
+      http.Response res = await HttpService.get(
+          url: "https://jsonplaceholder.typicode.com/posts/$postId");
+      if (res.statusCode != 200 && res.statusCode != 201) {
+        throw Exception("${res.statusCode} | ${res.body}");
+      }
+
+      Map<String, dynamic> result = jsonDecode(res.body);
+      Post post = Post.fromJson(result);
+      posts[post.id.toString()] = post;
+      working = false;
+      notifyListeners();
+      return post;
+    } catch (e) {
+      print(e);
+      working = false;
+      error = e;
+      notifyListeners();
+      throw e;
     }
   }
 }
@@ -276,5 +326,34 @@ class HttpService {
       'Content-Type': 'application/json',
       if (headers != null) ...headers
     });
+  }
+}
+
+class PostSummaryCard extends StatelessWidget {
+  final Post post;
+  final VoidCallback onTap;
+
+  const PostSummaryCard({Key? key, required this.post, required this.onTap})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                post.title,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
