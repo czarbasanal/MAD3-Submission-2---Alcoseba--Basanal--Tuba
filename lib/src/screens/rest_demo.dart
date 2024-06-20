@@ -93,6 +93,9 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
                                     EditPostDialog.show(context,
                                         controller: postController, post: post);
                                   },
+                                  onDelete: () {
+                                    postController.deletePost(post.id);
+                                  },
                                 ),
                             ],
                           );
@@ -112,17 +115,22 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
   }
 
   showNewPostFunction(BuildContext context) {
-    AddPostDialog.show(context, controller: postController);
+    AddPostDialog.show(context,
+        controller: postController, userController: userController);
   }
 }
 
 class AddPostDialog extends StatefulWidget {
-  static show(BuildContext context, {required PostController controller}) =>
+  static show(BuildContext context,
+          {required PostController controller,
+          required UserController userController}) =>
       showDialog(
-          context: context, builder: (dContext) => AddPostDialog(controller));
-  const AddPostDialog(this.controller, {super.key});
+          context: context,
+          builder: (dContext) => AddPostDialog(controller, userController));
+  const AddPostDialog(this.controller, this.userController, {super.key});
 
   final PostController controller;
+  final UserController userController;
 
   @override
   State<AddPostDialog> createState() => _AddPostDialogState();
@@ -130,6 +138,7 @@ class AddPostDialog extends StatefulWidget {
 
 class _AddPostDialogState extends State<AddPostDialog> {
   late TextEditingController bodyC, titleC;
+  User? selectedUser;
 
   @override
   void initState() {
@@ -145,11 +154,15 @@ class _AddPostDialogState extends State<AddPostDialog> {
       title: const Text("Add new post"),
       actions: [
         ElevatedButton(
-          onPressed: () async {
-            widget.controller.makePost(
-                title: titleC.text.trim(), body: bodyC.text.trim(), userId: 1);
-            Navigator.of(context).pop();
-          },
+          onPressed: selectedUser == null
+              ? null
+              : () async {
+                  widget.controller.makePost(
+                      title: titleC.text.trim(),
+                      body: bodyC.text.trim(),
+                      userId: selectedUser!.id);
+                  Navigator.of(context).pop();
+                },
           child: const Text("Add"),
         )
       ],
@@ -168,6 +181,22 @@ class _AddPostDialogState extends State<AddPostDialog> {
             child: TextFormField(
               controller: bodyC,
             ),
+          ),
+          const Text("User"),
+          DropdownButton<User>(
+            isExpanded: true,
+            value: selectedUser,
+            items: widget.userController.userList.map((User user) {
+              return DropdownMenuItem<User>(
+                value: user,
+                child: Text(user.name),
+              );
+            }).toList(),
+            onChanged: (User? newValue) {
+              setState(() {
+                selectedUser = newValue!;
+              });
+            },
           ),
         ],
       ),
@@ -373,6 +402,11 @@ class PostController with ChangeNotifier {
       return Post.empty;
     }
   }
+
+  Future<void> deletePost(int postId) async {
+    posts.remove(postId.toString());
+    notifyListeners();
+  }
 }
 
 class UserController with ChangeNotifier {
@@ -450,12 +484,14 @@ class PostSummaryCard extends StatelessWidget {
   final Post post;
   final VoidCallback onTap;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const PostSummaryCard({
     Key? key,
     required this.post,
     required this.onTap,
     required this.onEdit,
+    required this.onDelete,
   }) : super(key: key);
 
   @override
@@ -484,7 +520,7 @@ class PostSummaryCard extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete),
-                    onPressed: onEdit,
+                    onPressed: onDelete,
                   ),
                 ],
               ),
