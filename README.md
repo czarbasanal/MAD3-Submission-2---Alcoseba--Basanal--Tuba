@@ -23,8 +23,8 @@ Outlined in this section are the contributions made by each member for the MAD3-
     - created EditsPostDialog class
     - created _EditPostDialogState class
     - modified HttpService by adding PUT 
-    - modified overall user interface by google fonts and a modern minimalist design
-    - 
+    - modified overall user interface by utilizing google fonts and a modern minimalist design
+    
 - TUBA, MEXL DELVER
     - created TUBA-POST/posts branch
     - utilized UserController to fetch user list from the JSON placeholder API and included user selection in post creation
