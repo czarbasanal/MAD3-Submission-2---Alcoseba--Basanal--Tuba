@@ -20,7 +20,9 @@ Outlined in this section are the contributions made by each member for the MAD3-
     - modified PostSummaryCard to enable post editing
     - modified RestDemoScreen to display edit icon
     - modified PostContoller by adding updatePost 
-    - created EditsPostDialog and _EditPostDialogState class
+    - created EditsPostDialog class
+    - created _EditPostDialogState class
+    - modified HttpService by adding PUT 
     - modified overall user interface by utilizing cupertino icons and a modern minimalist design 
 
 
