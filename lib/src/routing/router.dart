@@ -82,7 +82,8 @@ class GlobalRouter {
                   path: SimpleCounterScreenWithInitialValue.route,
                   name: SimpleCounterScreenWithInitialValue.name,
                   builder: (context, _) {
-                    return const SimpleCounterScreenWithInitialValue(initialValue: 10);
+                    return const SimpleCounterScreenWithInitialValue(
+                        initialValue: 10);
                   }),
               GoRoute(
                   parentNavigatorKey: _rootNavigatorKey,

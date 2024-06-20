@@ -78,8 +78,8 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
                             title: Text(user.name),
                             children: [
                               for (Post post in userPosts)
-                                ListTile(
-                                  title: Text(post.title),
+                                PostSummaryCard(
+                                  post: post,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -88,6 +88,10 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
                                             PostDetailScreen(postId: post.id),
                                       ),
                                     );
+                                  },
+                                  onEdit: () {
+                                    EditPostDialog.show(context,
+                                        controller: postController, post: post);
                                   },
                                 ),
                             ],
@@ -147,6 +151,71 @@ class _AddPostDialogState extends State<AddPostDialog> {
             Navigator.of(context).pop();
           },
           child: const Text("Add"),
+        )
+      ],
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Title"),
+          Flexible(
+            child: TextFormField(
+              controller: titleC,
+            ),
+          ),
+          const Text("Content"),
+          Flexible(
+            child: TextFormField(
+              controller: bodyC,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class EditPostDialog extends StatefulWidget {
+  static show(BuildContext context,
+          {required PostController controller, required Post post}) =>
+      showDialog(
+          context: context,
+          builder: (dContext) => EditPostDialog(controller, post));
+  const EditPostDialog(this.controller, this.post, {super.key});
+
+  final PostController controller;
+  final Post post;
+
+  @override
+  State<EditPostDialog> createState() => _EditPostDialogState();
+}
+
+class _EditPostDialogState extends State<EditPostDialog> {
+  late TextEditingController bodyC, titleC;
+
+  @override
+  void initState() {
+    super.initState();
+    bodyC = TextEditingController(text: widget.post.body);
+    titleC = TextEditingController(text: widget.post.title);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      title: const Text("Edit post"),
+      actions: [
+        ElevatedButton(
+          onPressed: () async {
+            await widget.controller.updatePost(
+                postId: widget.post.id,
+                title: titleC.text.trim(),
+                body: bodyC.text.trim(),
+                userId: widget.post.userId);
+            Navigator.of(context).pop();
+          },
+          child: const Text("Save"),
         )
       ],
       content: Column(
@@ -268,6 +337,42 @@ class PostController with ChangeNotifier {
       throw e;
     }
   }
+
+  Future<Post> updatePost({
+    required int postId,
+    required String title,
+    required String body,
+    required int userId,
+  }) async {
+    try {
+      working = true;
+      if (error != null) error = null;
+      notifyListeners();
+
+      http.Response res = await HttpService.put(
+        url: "https://jsonplaceholder.typicode.com/posts/$postId",
+        body: {"title": title, "body": body, "userId": userId},
+      );
+
+      if (res.statusCode != 200 && res.statusCode != 201) {
+        throw Exception("${res.statusCode} | ${res.body}");
+      }
+
+      Map<String, dynamic> result = jsonDecode(res.body);
+      Post updatedPost = Post.fromJson(result);
+      posts[updatedPost.id.toString()] = updatedPost;
+      working = false;
+      notifyListeners();
+      return updatedPost;
+    } catch (e, st) {
+      print(e);
+      print(st);
+      error = e;
+      working = false;
+      notifyListeners();
+      return Post.empty;
+    }
+  }
 }
 
 class UserController with ChangeNotifier {
@@ -327,14 +432,31 @@ class HttpService {
       if (headers != null) ...headers
     });
   }
+
+  static Future<http.Response> put({
+    required String url,
+    required Map<dynamic, dynamic> body,
+    Map<String, dynamic>? headers,
+  }) async {
+    Uri uri = Uri.parse(url);
+    return http.put(uri, body: jsonEncode(body), headers: {
+      'Content-Type': 'application/json',
+      if (headers != null) ...headers
+    });
+  }
 }
 
 class PostSummaryCard extends StatelessWidget {
   final Post post;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
 
-  const PostSummaryCard({Key? key, required this.post, required this.onTap})
-      : super(key: key);
+  const PostSummaryCard({
+    Key? key,
+    required this.post,
+    required this.onTap,
+    required this.onEdit,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -346,10 +468,28 @@ class PostSummaryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                post.title,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      post.title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: onEdit,
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              Text(post.body),
             ],
           ),
         ),
