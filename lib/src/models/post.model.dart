@@ -15,8 +15,8 @@ class Post extends Equatable {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      userId: int.tryParse("${json['userId']}")??0,
-      id: int.tryParse("${json['id']}")??0,
+      userId: int.tryParse("${json['userId']}") ?? 0,
+      id: int.tryParse("${json['id']}") ?? 0,
       title: json['title'],
       body: json['body'],
     );

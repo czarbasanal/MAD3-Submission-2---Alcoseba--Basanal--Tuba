@@ -22,6 +22,7 @@ Outlined in this section are the contributions made by each member for the MAD3-
     - modified PostContoller by adding updatePost 
     - created EditsPostDialog class
     - created _EditPostDialogState class
+    - implemented validation to avoid null title and body
     - modified HttpService by adding PUT 
     - modified overall user interface by utilizing google fonts and a modern minimalist design
     

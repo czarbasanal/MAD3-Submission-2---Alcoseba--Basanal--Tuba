@@ -49,7 +49,8 @@ class Address extends Equatable {
   List<Object> get props => [street, suite, city, zipcode, geo];
 
   @override
-  String toString() => 'Address(street: $street, suite: $suite, city: $city, zipcode: $zipcode, geo: $geo)';
+  String toString() =>
+      'Address(street: $street, suite: $suite, city: $city, zipcode: $zipcode, geo: $geo)';
 }
 
 class Company extends Equatable {
@@ -57,7 +58,8 @@ class Company extends Equatable {
   final String catchPhrase;
   final String bs;
 
-  const Company({required this.name, required this.catchPhrase, required this.bs});
+  const Company(
+      {required this.name, required this.catchPhrase, required this.bs});
 
   factory Company.fromJson(Map<String, dynamic> json) {
     return Company(
@@ -71,7 +73,8 @@ class Company extends Equatable {
   List<Object> get props => [name, catchPhrase, bs];
 
   @override
-  String toString() => 'Company(name: $name, catchPhrase: $catchPhrase, bs: $bs)';
+  String toString() =>
+      'Company(name: $name, catchPhrase: $catchPhrase, bs: $bs)';
 }
 
 class User extends Equatable {
@@ -109,8 +112,10 @@ class User extends Equatable {
   }
 
   @override
-  List<Object> get props => [id, name, username, email, address, phone, website, company];
+  List<Object> get props =>
+      [id, name, username, email, address, phone, website, company];
 
   @override
-  String toString() => 'User(id: $id, name: $name, username: $username, email: $email, address: $address, phone: $phone, website: $website, company: $company)';
+  String toString() =>
+      'User(id: $id, name: $name, username: $username, email: $email, address: $address, phone: $phone, website: $website, company: $company)';
 }
