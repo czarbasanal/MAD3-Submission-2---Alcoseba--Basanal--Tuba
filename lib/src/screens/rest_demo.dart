@@ -43,7 +43,7 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text("Users"),
+          title: Text("Users"),
           centerTitle: true,
           leading: IconButton(
             onPressed: () {
@@ -51,14 +51,14 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
                 postController.getPosts();
               });
             },
-            icon: const Icon(CupertinoIcons.refresh), // Use Cupertino icon
+            icon: Icon(CupertinoIcons.refresh), // Use Cupertino icon
           ),
           actions: [
             IconButton(
               onPressed: () {
                 showNewPostFunction(context);
               },
-              icon: const Icon(CupertinoIcons.add), // Use Cupertino icon
+              icon: Icon(CupertinoIcons.add), // Use Cupertino icon
             )
           ],
         ),
@@ -118,7 +118,7 @@ class _RestDemoScreenState extends State<RestDemoScreen> {
                       },
                     );
                   }
-                  return const Center(
+                  return Center(
                     child: SpinKitChasingDots(
                       size: 54,
                       color:
@@ -159,6 +159,7 @@ class AddPostDialog extends StatefulWidget {
 class _AddPostDialogState extends State<AddPostDialog> {
   late TextEditingController bodyC, titleC;
   User? selectedUser;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -172,82 +173,100 @@ class _AddPostDialogState extends State<AddPostDialog> {
     return AlertDialog(
       backgroundColor: Colors.grey[850], // Dark background for dialog
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      title: const Text(
+      title: Text(
         "Add new post",
         style: TextStyle(color: Colors.white),
       ),
       actions: [
         ElevatedButton(
-          onPressed: selectedUser == null
-              ? null
-              : () async {
-                  widget.controller.makePost(
-                      title: titleC.text.trim(),
-                      body: bodyC.text.trim(),
-                      userId: selectedUser!.id);
-                  Navigator.of(context).pop();
-                },
-          child: const Text("Add"),
+          onPressed: () {
+            if (_formKey.currentState?.validate() ?? false) {
+              if (selectedUser != null) {
+                widget.controller.makePost(
+                  title: titleC.text.trim(),
+                  body: bodyC.text.trim(),
+                  userId: selectedUser!.id,
+                );
+                Navigator.of(context).pop();
+              }
+            }
+          },
+          child: Text("Add"),
         )
       ],
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Title",
-            style: TextStyle(color: Colors.white),
-          ),
-          Flexible(
-            child: TextFormField(
-              controller: titleC,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Title",
+              style: TextStyle(color: Colors.white),
+            ),
+            Flexible(
+              child: TextFormField(
+                controller: titleC,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
                 ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Title cannot be empty';
+                  }
+                  return null;
+                },
               ),
             ),
-          ),
-          const Text(
-            "Content",
-            style: TextStyle(color: Colors.white),
-          ),
-          Flexible(
-            child: TextFormField(
-              controller: bodyC,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+            Text(
+              "Content",
+              style: TextStyle(color: Colors.white),
+            ),
+            Flexible(
+              child: TextFormField(
+                controller: bodyC,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
                 ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Content cannot be empty';
+                  }
+                  return null;
+                },
               ),
             ),
-          ),
-          const Text(
-            "User",
-            style: TextStyle(color: Colors.white),
-          ),
-          DropdownButton<User>(
-            isExpanded: true,
-            value: selectedUser,
-            items: widget.userController.userList.map((User user) {
-              return DropdownMenuItem<User>(
-                value: user,
-                child: Text(
-                  user.name,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              );
-            }).toList(),
-            dropdownColor: Colors.grey[800],
-            onChanged: (User? newValue) {
-              setState(() {
-                selectedUser = newValue!;
-              });
-            },
-          ),
-        ],
+            Text(
+              "User",
+              style: TextStyle(color: Colors.white),
+            ),
+            DropdownButton<User>(
+              isExpanded: true,
+              value: selectedUser,
+              items: widget.userController.userList.map((User user) {
+                return DropdownMenuItem<User>(
+                  value: user,
+                  child: Text(
+                    user.name,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }).toList(),
+              dropdownColor: Colors.grey[800],
+              onChanged: (User? newValue) {
+                setState(() {
+                  selectedUser = newValue!;
+                });
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -270,6 +289,7 @@ class EditPostDialog extends StatefulWidget {
 
 class _EditPostDialogState extends State<EditPostDialog> {
   late TextEditingController bodyC, titleC;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -283,58 +303,76 @@ class _EditPostDialogState extends State<EditPostDialog> {
     return AlertDialog(
       backgroundColor: Colors.grey[850], // Dark background for dialog
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      title: const Text(
+      title: Text(
         "Edit post",
         style: TextStyle(color: Colors.white),
       ),
       actions: [
         ElevatedButton(
-          onPressed: () async {
-            await widget.controller.updatePost(
+          onPressed: () {
+            if (_formKey.currentState?.validate() ?? false) {
+              widget.controller.updatePost(
                 postId: widget.post.id,
                 title: titleC.text.trim(),
                 body: bodyC.text.trim(),
-                userId: widget.post.userId);
-            Navigator.of(context).pop();
+                userId: widget.post.userId,
+              );
+              Navigator.of(context).pop();
+            }
           },
-          child: const Text("Save"),
+          child: Text("Save"),
         )
       ],
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Title",
-            style: TextStyle(color: Colors.white),
-          ),
-          Flexible(
-            child: TextFormField(
-              controller: titleC,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Title",
+              style: TextStyle(color: Colors.white),
+            ),
+            Flexible(
+              child: TextFormField(
+                controller: titleC,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
                 ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Title cannot be empty';
+                  }
+                  return null;
+                },
               ),
             ),
-          ),
-          const Text(
-            "Content",
-            style: TextStyle(color: Colors.white),
-          ),
-          Flexible(
-            child: TextFormField(
-              controller: bodyC,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+            Text(
+              "Content",
+              style: TextStyle(color: Colors.white),
+            ),
+            Flexible(
+              child: TextFormField(
+                controller: bodyC,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
                 ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Content cannot be empty';
+                  }
+                  return null;
+                },
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
